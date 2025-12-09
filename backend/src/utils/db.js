@@ -1,7 +1,18 @@
-const Database = require('better-sqlite3');
+const path = require("path");
+const fs = require("fs");
+const Database = require("better-sqlite3");
 
-// SQLite database connect
+// Render or local par database folder create karo
+const dbDir = path.join(__dirname, "../../database");
 
-const db = new Database('./database/sales.db');
+if (!fs.existsSync(dbDir)) {
+  fs.mkdirSync(dbDir, { recursive: true });
+}
+
+// DB file path
+const dbPath = path.join(dbDir, "sales.db");
+
+// Connect
+const db = new Database(dbPath);
 
 module.exports = db;
