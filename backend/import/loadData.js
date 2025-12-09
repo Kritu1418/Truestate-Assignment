@@ -3,13 +3,13 @@ const path = require("path");
 const Database = require("better-sqlite3");
 const csv = require("csv-parser");
 
-// Connect DB
+// DB path fix for Render
 const db = new Database(path.join(__dirname, "../database/sales.db"));
 
-// CSV path
+// CSV file (must exist exactly as dataset.csv)
 const csvFilePath = path.join(__dirname, "dataset.csv");
 
-// TABLE CREATE (clean names)
+// Create sales table
 db.prepare(`
   CREATE TABLE IF NOT EXISTS sales (
     TransactionID TEXT,
@@ -43,7 +43,6 @@ db.prepare(`
 
 console.log("Table ready. Starting import...");
 
-// INSERT STATEMENT
 const insert = db.prepare(`
   INSERT INTO sales (
     TransactionID, Date, CustomerID, CustomerName, PhoneNumber, Gender, Age,
@@ -51,7 +50,8 @@ const insert = db.prepare(`
     ProductCategory, Tags, Quantity, PricePerUnit, DiscountPercentage,
     TotalAmount, FinalAmount, PaymentMethod, OrderStatus, DeliveryType,
     StoreID, StoreLocation, SalespersonID, EmployeeName
-  ) VALUES (
+  )
+  VALUES (
     @TransactionID, @Date, @CustomerID, @CustomerName, @PhoneNumber, @Gender, @Age,
     @CustomerRegion, @CustomerType, @ProductID, @ProductName, @Brand,
     @ProductCategory, @Tags, @Quantity, @PricePerUnit, @DiscountPercentage,
@@ -62,8 +62,7 @@ const insert = db.prepare(`
 
 let count = 0;
 
-// FUNCTION: clean headers (remove spaces)
-const normalizeRow = (row) => ({
+const normalize = (row) => ({
   TransactionID: row["Transaction ID"],
   Date: row["Date"],
   CustomerID: row["Customer ID"],
@@ -95,10 +94,8 @@ const normalizeRow = (row) => ({
 fs.createReadStream(csvFilePath)
   .pipe(csv())
   .on("data", (row) => {
-    const clean = normalizeRow(row);
-    insert.run(clean);
+    insert.run(normalize(row));
     count++;
-
     if (count % 5000 === 0) console.log(`${count} rows imported...`);
   })
   .on("end", () => {
