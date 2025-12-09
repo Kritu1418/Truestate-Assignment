@@ -23,3 +23,7 @@
     "nodemon": "^3.1.11"
   }
 }
+"scripts": {
+  "start": "node src/index.js",
+  "import": "node import/loadData.js"
+}
